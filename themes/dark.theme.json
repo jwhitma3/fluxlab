@@ -1,0 +1,48 @@
+{
+    "qt": {
+        "Window": "#23272E",
+        "Base": "#181A1F",
+        "AlternateBase": "#282C34",
+        "WindowText": "#ABB2BF",
+        "Text": "#ABB2BF",
+        "Button": "#3E4451",
+        "ButtonText": "#FFFFFF",
+        "Highlight": "#0EA5E9",
+        "HighlightedText": "#FFFFFF",
+        "ToolTipBase": "#181A1F",
+        "ToolTipText": "#ABB2BF"
+    },
+    "matplotlib": {
+        "figure.facecolor": "#23272E",
+        "figure.edgecolor": "#181A1F",
+
+        "axes.facecolor": "#181A1F",
+        "axes.edgecolor": "#5C6370",
+        "axes.labelcolor": "#ABB2BF",
+        "axes.titlecolor": "#FFFFFF",
+
+        "xtick.color": "#ABB2BF",
+        "ytick.color": "#ABB2BF",
+
+        "grid.color": "#3E4451",
+        "grid.alpha": 0.5,
+        "grid.linestyle": "--",
+
+        "lines.color": "#D1D5DB",
+        "lines.linewidth": 1.0,
+
+        "patch.edgecolor": "#181A1F",
+        "patch.force_edgecolor": true,
+
+        "axes.prop_cycle": [
+            "#0EA5E9",
+            "#F15BB5",
+            "#FEE440",
+            "#00F5D4",
+            "#9B5DE5"
+        ]
+    },
+    "app_tools": {
+        "spectrum.color": "#D1D5DB"
+    }
+}
