@@ -39,7 +39,7 @@ class AppWindow(QObject):
         self.load_ui()
 
         self.theme_manager = ThemeManager(self.ui, self.theme_file)
-
+        self.app_theme = self.theme_manager.app_theme
         self.setup_toolbars()
 
         self.canvas = PlotCanvas()

@@ -48,6 +48,6 @@ class AppController:
 
         from view.measurement_tool import MeasurementTool
 
-        self.measurement_tool = MeasurementTool(self.axes)
+        self.measurement_tool = MeasurementTool(self.axes, self.window.app_theme)
 
         logger.info("Placing measurement tool...")
