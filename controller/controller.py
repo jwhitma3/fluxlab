@@ -47,7 +47,9 @@ class AppController:
             self.measurement_tool = None
             return
 
-        self.measurement_tool = MeasurementTool(self.axes, self.window.app_theme)
+        self.measurement_tool = MeasurementTool(
+            self.axes, self.model, self.window.app_theme
+        )
         self.measurement_tool.flux_bounds_changed.connect(self.on_flux_bounds_changed)
         logger.info("Placing measurement tool...")
 

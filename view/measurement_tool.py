@@ -5,8 +5,10 @@ from enum import Enum, auto
 
 import numpy as np
 from PySide6.QtCore import Signal, QObject
+from matplotlib.backend_bases import MouseEvent, Event
 from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg
 
+from model.spectrum import SpectrumModel
 from utils.logger import get_logger
 from view.theme_manager import AppTheme
 
@@ -27,7 +29,7 @@ class MeasurementTool(QObject):
     flux_bounds_changed = Signal()
     continuum_bounds_changed = Signal()
 
-    def __init__(self, axes, theme: AppTheme):
+    def __init__(self, axes, spectrum_model: SpectrumModel, theme: AppTheme):
         """
         The MeasurementTool attaches to the axes of a PlotCanvas
         and listens for events to update the visuals
@@ -41,6 +43,7 @@ class MeasurementTool(QObject):
         self.axes = axes
         self.canvas: FigureCanvasQTAgg = self.axes.figure.canvas
         self.center = np.average(axes.get_xlim())
+        self._spectrum_model = spectrum_model
 
         self.flux_bounds = (None, None)
         self.continuum_bounds = (None, None)
@@ -57,7 +60,7 @@ class MeasurementTool(QObject):
         self.cid_motion = self.canvas.mpl_connect(
             "motion_notify_event", self.on_mouse_move
         )
-        self.cid_pick = self.canvas.mpl_connect("pick_event", self.on_click)
+        # self.cid_pick = self.canvas.mpl_connect("pick_event", self.on_click)
         self.cid_press = self.canvas.mpl_connect(
             "button_press_event", self.on_mouse_press
         )
@@ -89,18 +92,22 @@ class MeasurementTool(QObject):
             line.remove()
         self.canvas.draw_idle()
 
-    def on_mouse_press(self, event):
+    def on_mouse_press(self, event: Event):
+        if not isinstance(event, MouseEvent):
+            return
         if event.inaxes is not self.axes:
             return
         if event.button == 1:
 
+            snapped_x = self._spectrum_model.get_nearest_wavelength(event.xdata)
+
             # User is placing the left flux line
             if self.tool_state == ToolState.PLACING_LEFT_FLUX:
                 # Place the left flux line
-                self.left_flux_line.place(event.xdata)
+                self.left_flux_line.place(snapped_x)
                 self.canvas.draw_idle()
 
-                self.flux_bounds = (event.xdata, self.flux_bounds[1])
+                self.flux_bounds = (snapped_x, self.flux_bounds[1])
                 # User is now placing the right flux line
                 self.tool_state = ToolState.PLACING_RIGHT_FLUX
 
@@ -109,37 +116,44 @@ class MeasurementTool(QObject):
             # User is placing the right flux line
             if self.tool_state == ToolState.PLACING_RIGHT_FLUX:
                 # Place the right flux line
-                self.right_flux_line.place(event.xdata)
+                self.right_flux_line.place(snapped_x)
                 self.canvas.draw_idle()
 
-                self.flux_bounds = (self.flux_bounds[0], event.xdata)
+                self.flux_bounds = (self.flux_bounds[0], snapped_x)
 
                 # Both flux lines placed, emit signal
                 self.flux_bounds_changed.emit()
                 self.tool_state = ToolState.IDLE
                 return
 
-    def on_mouse_release(self, event):
-        pass
-
-    def on_mouse_move(self, event):
-        if event.inaxes is not self.axes:
-            if self.tool_state == ToolState.PLACING_LEFT_FLUX:
-                self.left_flux_line.set_visible(False)
-                self.canvas.draw_idle()
+    def on_mouse_release(self, event: Event):
+        if not isinstance(event, MouseEvent):
             return
-        if self.tool_state == ToolState.PLACING_LEFT_FLUX:
-            self.left_flux_line.set_visible(True)
-            self.left_flux_line.set_x(event.xdata)
-            self.canvas.draw_idle()
-
-        if self.tool_state == ToolState.PLACING_RIGHT_FLUX:
-            self.right_flux_line.set_visible(True)
-            self.right_flux_line.set_x(event.xdata)
-            self.canvas.draw_idle()
-
-    def on_click(self, event):
         pass
+
+    def on_mouse_move(self, event: Event):
+        if not isinstance(event, MouseEvent):
+            return
+        if event.inaxes is not self.axes:
+            # if self.tool_state == ToolState.PLACING_LEFT_FLUX:
+            #     self.left_flux_line.set_visible(False)
+            #     self.canvas.draw_idle()
+            return
+
+        snapped_x = self._spectrum_model.get_nearest_wavelength(event.xdata)
+
+        active_line = None
+        if self.tool_state == ToolState.PLACING_LEFT_FLUX:
+            active_line = self.left_flux_line
+        elif self.tool_state == ToolState.PLACING_RIGHT_FLUX:
+            active_line = self.right_flux_line
+        else:
+            return
+
+        active_line.set_visible(True)
+        if snapped_x != active_line.center:
+            active_line.set_x(snapped_x)
+            self.canvas.draw_idle()
 
     class VLine:
         def __init__(self, parent, x=None):
