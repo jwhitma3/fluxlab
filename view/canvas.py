@@ -2,6 +2,7 @@
 #  Copyright (c) 2026 Joshua C. Whitman
 
 from PySide6.QtCore import Qt
+from matplotlib.backend_bases import MouseEvent, Event, KeyEvent
 from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg
 from matplotlib.figure import Figure
 
@@ -76,13 +77,19 @@ class PlotCanvas(FigureCanvasQTAgg):
         logger.info("Plotting spectrum...")
         self.draw_idle()
 
-    def on_key_press(self, event):
+    def on_key_press(self, event: Event):
+        if not isinstance(event, KeyEvent):
+            return
         logger.debug(f"Key pressed: {event.key}")
 
-    def on_key_release(self, event):
+    def on_key_release(self, event: Event):
+        if not isinstance(event, KeyEvent):
+            return
         logger.debug(f"Key released: {event.key}")
 
-    def on_scroll(self, event):
+    def on_scroll(self, event: Event):
+        if not isinstance(event, MouseEvent):
+            return
 
         if event.inaxes is not self.axes:
             logger.debug("Scroll event outside axes")
@@ -115,7 +122,9 @@ class PlotCanvas(FigureCanvasQTAgg):
 
         self.draw_idle()
 
-    def on_mouse_move(self, event):
+    def on_mouse_move(self, event: Event):
+        if not isinstance(event, MouseEvent):
+            return
         if event.button == 3 and self._rmb_event_location is not None:
             dx_px = event.x - self._rmb_event_location[0]
             dy_px = event.y - self._rmb_event_location[1]
@@ -139,7 +148,9 @@ class PlotCanvas(FigureCanvasQTAgg):
                 )
                 self.draw_idle()
 
-    def on_mouse_press(self, event):
+    def on_mouse_press(self, event: Event):
+        if not isinstance(event, MouseEvent):
+            return
         if event.inaxes is not self.axes:
             return
         logger.debug(f"Mouse press event: {event.button}")
@@ -151,7 +162,9 @@ class PlotCanvas(FigureCanvasQTAgg):
             self._initial_xlim = self.axes.get_xlim()
             self._initial_ylim = self.axes.get_ylim()
 
-    def on_mouse_release(self, event):
+    def on_mouse_release(self, event: Event):
+        if not isinstance(event, MouseEvent):
+            return
         self._is_panning = False
         self._rmb_event_location = None
         self._initial_xlim = self.axes.get_xlim()
