@@ -155,6 +155,9 @@ class MeasurementTool(QObject):
             active_line.set_x(snapped_x)
             self.canvas.draw_idle()
 
+    def _highlight_region(self):
+        pass
+
     class VLine:
         def __init__(self, parent, x=None):
             self.theme: AppTheme = parent.theme
