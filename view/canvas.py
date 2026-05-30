@@ -118,12 +118,12 @@ class PlotCanvas(FigureCanvasQTAgg):
         if zoom_x:
             new_dx = (x1 - x0) * scale_factor
             rel_x = (xdata - x0) / (x1 - x0)
-            self.axes.set_xlim([xdata - new_dx * rel_x, xdata + new_dx * (1 - rel_x)])
+            self.axes.set_xlim((xdata - new_dx * rel_x, xdata + new_dx * (1 - rel_x)))
 
         if zoom_y:
             new_dy = (y1 - y0) * scale_factor
             rel_y = (ydata - y0) / (y1 - y0)
-            self.axes.set_ylim([ydata - new_dy * rel_y, ydata + new_dy * (1 - rel_y)])
+            self.axes.set_ylim((ydata - new_dy * rel_y, ydata + new_dy * (1 - rel_y)))
 
         self.draw_idle()
 
