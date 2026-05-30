@@ -53,7 +53,12 @@ class PlotCanvas(FigureCanvasQTAgg):
         self.mpl_connect("button_release_event", self.on_mouse_release)
 
     def plot_spectrum(
-        self, x, y, title: str = None, x_label: str = None, y_label: str = None
+        self,
+        x,
+        y,
+        title: str | None = None,
+        x_label: str | None = None,
+        y_label: str | None = None,
     ):
         self.axes.clear()
         self.axes.grid(linestyle=":", linewidth=1, alpha=0.5)
