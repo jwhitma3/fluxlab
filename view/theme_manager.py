@@ -2,6 +2,7 @@
 #  Copyright (c) 2026 Joshua C. Whitman
 
 import json
+from dataclasses import dataclass
 from pathlib import Path
 
 from PySide6.QtGui import QPalette, QColor
@@ -13,12 +14,23 @@ from utils.logger import get_logger
 logger = get_logger(__name__)
 
 
+@dataclass
+class AppTheme:
+    tool_base: str
+    tool_active: str
+    tool_disabled: str
+    handle_base: str
+    handle_active: str
+    handle_disabled: str
+
+
 class ThemeManager:
     def __init__(self, ui, theme_file):
         self.ui = ui
         self.theme_file = Path(theme_file)
-
         self.theme = self.load_theme()
+
+        self.app_theme = self._build_app_theme()
 
         if self.theme:
             self.apply_theme_to_matplotlib()
@@ -38,6 +50,17 @@ class ThemeManager:
 
         logger.warning(f"Theme lookup failed: '{key}' not found in '{namespace}'.")
         return "#55FF33"  # Fallback to lime green fo debugging
+
+    def _build_app_theme(self):
+        app_theme = AppTheme(
+            tool_active=self.get_color("tool_active"),
+            tool_base=self.get_color("tool_base"),
+            tool_disabled=self.get_color("tool_disabled"),
+            handle_active=self.get_color("handle_active"),
+            handle_base=self.get_color("handle_base"),
+            handle_disabled=self.get_color("handle_disabled"),
+        )
+        return app_theme
 
     def apply_theme_to_matplotlib(self):
         if "matplotlib" not in self.theme:

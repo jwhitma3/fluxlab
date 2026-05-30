@@ -2,6 +2,7 @@
 #  Copyright (c) 2026 Joshua C. Whitman
 
 from utils.logger import get_logger
+from view.measurement_tool import MeasurementTool
 
 logger = get_logger(__name__)
 
@@ -46,8 +47,11 @@ class AppController:
             self.measurement_tool = None
             return
 
-        from view.measurement_tool import MeasurementTool
-
         self.measurement_tool = MeasurementTool(self.axes, self.window.app_theme)
-
+        self.measurement_tool.flux_bounds_changed.connect(self.on_flux_bounds_changed)
         logger.info("Placing measurement tool...")
+
+    def on_flux_bounds_changed(self):
+        bounds = self.measurement_tool.flux_bounds
+        logger.debug(f"Flux bounds changed: {bounds[0]}, {bounds[1]}")
+        pass

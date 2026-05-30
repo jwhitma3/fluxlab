@@ -6,13 +6,13 @@ import sys
 from PySide6.QtWidgets import QApplication
 
 from controller.controller import AppController
-from model.model import AppModel
+from model.spectrum import SpectrumModel
 from view.window import AppWindow
 
 
 def main():
     app = QApplication(sys.argv)
-    model = AppModel()
+    model = SpectrumModel()
     window = AppWindow()
     controller = AppController(model=model, window=window)
     window.show()

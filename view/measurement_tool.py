@@ -4,6 +4,7 @@
 from enum import Enum, auto
 
 import numpy as np
+from PySide6.QtCore import Signal, QObject
 from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg
 
 from utils.logger import get_logger
@@ -18,17 +19,20 @@ class ToolState(Enum):
     PLACING_RIGHT_FLUX = auto()
 
 
-class MeasurementTool:
+class MeasurementTool(QObject):
     """
     Represents a visual tool for integrating the flux of an emission line
     """
+
+    flux_bounds_changed = Signal()
+    continuum_bounds_changed = Signal()
 
     def __init__(self, axes, theme: AppTheme):
         """
         The MeasurementTool attaches to the axes of a PlotCanvas
         and listens for events to update the visuals
         """
-
+        super().__init__()
         self.cid_release = None
         self.cid_press = None
         self.cid_pick = None
@@ -38,15 +42,18 @@ class MeasurementTool:
         self.canvas: FigureCanvasQTAgg = self.axes.figure.canvas
         self.center = np.average(axes.get_xlim())
 
+        self.flux_bounds = (None, None)
+        self.continuum_bounds = (None, None)
+
         self.left_flux_line = self.VLine(self)
         self.right_flux_line = self.VLine(self)
         self.left_continuum_line = self.VLine(self)
         self.right_continuum_line = self.VLine(self)
         self.tool_state = ToolState.PLACING_LEFT_FLUX
-        self.connect_signals()
+        self._connect_signals()
         self.canvas.draw_idle()
 
-    def connect_signals(self):
+    def _connect_signals(self):
         self.cid_motion = self.canvas.mpl_connect(
             "motion_notify_event", self.on_mouse_move
         )
@@ -86,11 +93,31 @@ class MeasurementTool:
         if event.inaxes is not self.axes:
             return
         if event.button == 1:
+
+            # User is placing the left flux line
             if self.tool_state == ToolState.PLACING_LEFT_FLUX:
-                self.tool_state = ToolState.PLACING_RIGHT_FLUX
+                # Place the left flux line
                 self.left_flux_line.place(event.xdata)
                 self.canvas.draw_idle()
-        pass
+
+                self.flux_bounds = (event.xdata, self.flux_bounds[1])
+                # User is now placing the right flux line
+                self.tool_state = ToolState.PLACING_RIGHT_FLUX
+
+                return
+
+            # User is placing the right flux line
+            if self.tool_state == ToolState.PLACING_RIGHT_FLUX:
+                # Place the right flux line
+                self.right_flux_line.place(event.xdata)
+                self.canvas.draw_idle()
+
+                self.flux_bounds = (self.flux_bounds[0], event.xdata)
+
+                # Both flux lines placed, emit signal
+                self.flux_bounds_changed.emit()
+                self.tool_state = ToolState.IDLE
+                return
 
     def on_mouse_release(self, event):
         pass
@@ -104,6 +131,11 @@ class MeasurementTool:
         if self.tool_state == ToolState.PLACING_LEFT_FLUX:
             self.left_flux_line.set_visible(True)
             self.left_flux_line.set_x(event.xdata)
+            self.canvas.draw_idle()
+
+        if self.tool_state == ToolState.PLACING_RIGHT_FLUX:
+            self.right_flux_line.set_visible(True)
+            self.right_flux_line.set_x(event.xdata)
             self.canvas.draw_idle()
 
     def on_click(self, event):
